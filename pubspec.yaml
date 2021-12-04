@@ -37,6 +37,7 @@ dependencies:
   font_awesome_flutter: ^9.2.0
   adaptive_dialog: ^1.1.0
   flutter_facebook_auth: ^3.5.3
+  email_validator: ^2.0.1
 
 dev_dependencies:
   flutter_test:
