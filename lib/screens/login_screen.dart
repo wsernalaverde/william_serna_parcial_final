@@ -1,9 +1,16 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'dart:convert';
+
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:william_serna_parcial_final/components/loader_component.dart';
+import 'package:william_serna_parcial_final/helpers/constans.dart';
+import 'package:william_serna_parcial_final/models/token.dart';
+import 'package:william_serna_parcial_final/screens/home_screen.dart';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -13,6 +20,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  bool _rememberme = true;
   bool _showLoader = false;
 
   @override
@@ -22,20 +30,25 @@ class _LoginScreenState extends State<LoginScreen> {
         title: Text('Encuesta del curso'),
         backgroundColor: Color(0xFF060606),
       ),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            SizedBox(
-              height: 90,
+      body: Stack(
+        children: <Widget>[
+          Center(
+            child: Column(
+              children: <Widget>[
+                SizedBox(
+                  height: 90,
+                ),
+                _showLogo(),
+                showDescription(),
+                SizedBox(
+                  height: 30,
+                ),
+                showButton()
+              ],
             ),
-            _showLogo(),
-            showDescription(),
-            SizedBox(
-              height: 30,
-            ),
-            showButton()
-          ],
-        ),
+          ),
+          _showLoader ? LoaderComponent(text: 'Procesando...') : Container(),
+        ],
       ),
     );
   }
@@ -89,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _showLoader = true;
     });
-    print('oe');
+
     await FacebookAuth.i.logOut();
     var result = await FacebookAuth.i.login(
       permissions: ["public_profile", "email"],
@@ -131,6 +144,45 @@ class _LoginScreenState extends State<LoginScreen> {
 
     print(request);
 
-    // await _socialLogin(request);
+    await _socialLogin(request);
+  }
+
+  Future _socialLogin(Map<String, dynamic> request) async {
+    var url = Uri.parse('${Constans.apiUrl}/api/Account/SocialLogin');
+    var response = await http.post(
+      url,
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json',
+      },
+      body: jsonEncode(request),
+    );
+
+    setState(() {
+      _showLoader = false;
+    });
+
+    if (response.statusCode >= 400) {
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message:
+              'El usuario ya inció sesión previamente por email o por otra red social.',
+          actions: <AlertDialogAction>[
+            AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      return;
+    }
+
+    var body = response.body;
+
+    var decodedJson = jsonDecode(body);
+    var token = Token.fromJson(decodedJson);
+    Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => HomeScreen(
+                  token: token,
+                )));
   }
 }
