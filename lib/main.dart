@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors
 
 import 'package:flutter/material.dart';
+import 'package:william_serna_parcial_final/screens/login_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -10,16 +11,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Encuesta Curso App',
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Encuesta curso'),
-        ),
-        body: Center(
-          child: Container(
-            child: Text('ecuensta'),
-          ),
-        ),
-      ),
+      home: LoginScreen(),
     );
   }
 }
