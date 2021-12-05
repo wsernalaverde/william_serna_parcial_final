@@ -20,7 +20,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _rememberme = true;
   bool _showLoader = false;
 
   @override

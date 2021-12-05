@@ -1,10 +1,15 @@
 // ignore_for_file: prefer_const_constructors, non_constant_identifier_names, prefer_final_fields, unused_field
 
+import 'dart:convert';
+
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:william_serna_parcial_final/components/loader_component.dart';
+import 'package:william_serna_parcial_final/helpers/api_helper.dart';
 import 'package:william_serna_parcial_final/helpers/constans.dart';
+import 'package:william_serna_parcial_final/models/response.dart';
 import 'package:william_serna_parcial_final/models/token.dart';
 import 'package:http/http.dart' as http;
 
@@ -25,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _emailShowError = false;
   TextEditingController _emailController = TextEditingController();
 
-  double _qualification = 0;
+  int _qualification = 0;
   String _qualificationError = '';
   bool _qualificationShowError = false;
   TextEditingController _qualificationController = TextEditingController();
@@ -58,35 +63,42 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text('Encuesta del curso'),
           backgroundColor: Color(0xFF060606),
         ),
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  SizedBox(
-                    height: 20,
+        body: Center(
+          child: RefreshIndicator(
+            onRefresh: _loadFieldValues,
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Column(
+                    children: <Widget>[
+                      SizedBox(
+                        height: 20,
+                      ),
+                      _showEmail(),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      _showLabelQualification(),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      _showQualification(),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      _showTheBest(),
+                      _showTheWorst(),
+                      _showRemarks(),
+                      _showButton()
+                    ],
                   ),
-                  _showEmail(),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  _showLabelQualification(),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  _showQualification(),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  _showTheBest(),
-                  _showTheWorst(),
-                  _showRemarks(),
-                  _showButton()
-                ],
-              ),
+                ),
+                _showLoader
+                    ? LoaderComponent(text: 'Procesando...')
+                    : Container(),
+              ],
             ),
-            _showLoader ? LoaderComponent(text: 'Procesando...') : Container(),
-          ],
+          ),
         ));
   }
 
@@ -99,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           RatingBar.builder(
-            initialRating: _qualification,
+            initialRating: _qualification.toDouble(),
             minRating: 1,
             direction: Axis.horizontal,
             allowHalfRating: true,
@@ -110,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.amber,
             ),
             onRatingUpdate: (rating) {
-              _qualification = rating;
+              _qualification = rating.toInt();
             },
           ),
           SizedBox(
@@ -225,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Color(0xFF120E43);
                 }),
               ),
-              onPressed: () => _saveForm(),
+              onPressed: () => _loadFieldValues(),
             ),
           ),
         ],
@@ -233,24 +245,67 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _loadFieldValues() async {
-    var url = Uri.parse('${Constans.apiUrl}/api/Finals');
-    var response = await http.get(url, headers: {
-      'content-type': 'application/json',
-      'accept': 'application/json'
+  Future<Null> _loadFieldValues() async {
+    setState(() {
+      _showLoader = true;
     });
 
-    print('respuesta');
+    Response response = await ApiHelper.getPoll(widget.token);
 
-    print(response);
+    setState(() {
+      _showLoader = false;
+    });
+
+    if (!response.isSuccess) {
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message: response.message,
+          actions: <AlertDialogAction>[
+            AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      return;
+    }
+
+    if (response.result.qualification > 0) {
+      _email = response.result.email;
+      _emailController.text = _email;
+
+      _theBest = response.result.theBest;
+      _theBestController.text = _theBest;
+
+      _theWorst = response.result.theWorst;
+      _theWorstController.text = _theWorst;
+
+      _remarks = response.result.remarks;
+      _remarksController.text = _remarks;
+
+      _qualification = response.result.qualification;
+    }
   }
 
-  void _saveForm() {
+  Future<Null> _saveForm() async {
     if (!_validateFields()) {
       return;
     }
 
-    print('melo');
+    setState(() {
+      _showLoader = true;
+    });
+
+    Map<String, dynamic> request = {
+      'email': _email,
+      'qualification': _qualification,
+      'theBest': _theBest,
+      'theWorst': _theWorst,
+      'remarks': _remarks,
+    };
+
+    setState(() {
+      _showLoader = false;
+    });
+
+    print(request);
   }
 
   bool _validateFields() {
