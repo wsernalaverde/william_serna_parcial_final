@@ -2,6 +2,7 @@
 
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:william_serna_parcial_final/components/loader_component.dart';
 import 'package:william_serna_parcial_final/helpers/constans.dart';
 import 'package:william_serna_parcial_final/models/token.dart';
@@ -24,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _emailShowError = false;
   TextEditingController _emailController = TextEditingController();
 
-  int _qualification = 0;
+  double _qualification = 0;
   String _qualificationError = '';
   bool _qualificationShowError = false;
   TextEditingController _qualificationController = TextEditingController();
@@ -62,7 +63,21 @@ class _HomeScreenState extends State<HomeScreen> {
             SingleChildScrollView(
               child: Column(
                 children: <Widget>[
+                  SizedBox(
+                    height: 20,
+                  ),
                   _showEmail(),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  _showLabelQualification(),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  _showQualification(),
+                  SizedBox(
+                    height: 10,
+                  ),
                   _showTheBest(),
                   _showTheWorst(),
                   _showRemarks(),
@@ -73,6 +88,42 @@ class _HomeScreenState extends State<HomeScreen> {
             _showLoader ? LoaderComponent(text: 'Procesando...') : Container(),
           ],
         ));
+  }
+
+  Widget _showLabelQualification() {
+    return Text('Califica de 1 a 5 como te pareció el curso');
+  }
+
+  Widget _showQualification() {
+    return Container(
+      child: Column(
+        children: [
+          RatingBar.builder(
+            initialRating: _qualification,
+            minRating: 1,
+            direction: Axis.horizontal,
+            allowHalfRating: true,
+            itemCount: 5,
+            itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+            itemBuilder: (context, _) => Icon(
+              Icons.star,
+              color: Colors.amber,
+            ),
+            onRatingUpdate: (rating) {
+              _qualification = rating;
+            },
+          ),
+          SizedBox(
+            height: 5,
+          ),
+          Text(
+            _qualificationShowError ? _qualificationError : '',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 11, color: Color(0xFFFF0000)),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _showTheBest() {
@@ -165,6 +216,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ElevatedButton(
               child: Text('Guardar'),
               style: ButtonStyle(
+                padding: MaterialStateProperty.resolveWith<EdgeInsetsGeometry>(
+                    (Set<MaterialState> states) {
+                  return EdgeInsets.all(13);
+                }),
                 backgroundColor: MaterialStateProperty.resolveWith<Color>(
                     (Set<MaterialState> states) {
                   return Color(0xFF120E43);
@@ -184,6 +239,8 @@ class _HomeScreenState extends State<HomeScreen> {
       'content-type': 'application/json',
       'accept': 'application/json'
     });
+
+    print('respuesta');
 
     print(response);
   }
@@ -237,6 +294,14 @@ class _HomeScreenState extends State<HomeScreen> {
       _remarksError = 'Debes ingresar un comentario.';
     } else {
       _remarksShowError = false;
+    }
+
+    if (_qualification <= 0) {
+      isValid = false;
+      _qualificationShowError = true;
+      _qualificationError = 'Debes ingresar una calificación.';
+    } else {
+      _qualificationShowError = false;
     }
 
     setState(() {});
