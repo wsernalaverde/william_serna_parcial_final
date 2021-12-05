@@ -141,8 +141,6 @@ class _LoginScreenState extends State<LoginScreen> {
       'lastName': requestData['last_name'],
     };
 
-    print(request);
-
     await _socialLogin(request);
   }
 

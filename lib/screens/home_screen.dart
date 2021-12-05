@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Color(0xFF120E43);
                 }),
               ),
-              onPressed: () => _loadFieldValues(),
+              onPressed: () => _saveForm(),
             ),
           ),
         ],
@@ -301,11 +301,31 @@ class _HomeScreenState extends State<HomeScreen> {
       'remarks': _remarks,
     };
 
+    Response response =
+        await ApiHelper.post('/api/Finals', request, widget.token);
+
     setState(() {
       _showLoader = false;
     });
 
-    print(request);
+    if (!response.isSuccess) {
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message: response.message,
+          actions: <AlertDialogAction>[
+            AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      return;
+    }
+
+    await showAlertDialog(
+        context: context,
+        title: '¡Enviado!',
+        message: 'Los datos de la encuesta se han almacenado con éxito.',
+        actions: <AlertDialogAction>[
+          AlertDialogAction(key: null, label: 'Aceptar'),
+        ]);
   }
 
   bool _validateFields() {
