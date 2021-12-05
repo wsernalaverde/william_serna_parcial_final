@@ -1,17 +1,12 @@
 // ignore_for_file: prefer_const_constructors, non_constant_identifier_names, prefer_final_fields, unused_field
-
-import 'dart:convert';
-
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:william_serna_parcial_final/components/loader_component.dart';
 import 'package:william_serna_parcial_final/helpers/api_helper.dart';
-import 'package:william_serna_parcial_final/helpers/constans.dart';
 import 'package:william_serna_parcial_final/models/response.dart';
 import 'package:william_serna_parcial_final/models/token.dart';
-import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   final Token token;
